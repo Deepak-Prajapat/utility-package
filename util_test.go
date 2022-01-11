@@ -703,7 +703,7 @@ func TestMarshal(t *testing.T) {
 		want want
 	}{
 		{
-			name: "Pass struct",
+			name: "Struct to String",
 			args: args{
 				strct: tempStruct{
 					Name: "Raghav",
