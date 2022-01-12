@@ -1,7 +1,12 @@
 package utility
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"io"
+	"io/ioutil"
+	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -101,7 +106,7 @@ func TestSplit(t *testing.T) {
 
 	type want struct {
 		output      []string
-		sliceLength int
+		sliceLength int //// to apply assertion on sliceLength
 	}
 
 	testCases := []struct {
@@ -171,8 +176,8 @@ func TestSplit(t *testing.T) {
 		t.Run(testCase.name, func(t *testing.T) {
 			output := Split(testCase.args.text, testCase.args.char)
 
-			assert.Equal(t, testCase.want.output, output)
-			assert.Equal(t, testCase.want.sliceLength, len(output))
+			assert.Equal(t, testCase.want.output, output)           // output
+			assert.Equal(t, testCase.want.sliceLength, len(output)) // length
 		})
 	}
 
@@ -191,6 +196,51 @@ func TestOrigin(t *testing.T) {
 		args args
 		want want
 	}{
+		{
+			name: "whatsapp",
+			args: args{
+				text: "whatsapp:hello",
+			},
+			want: want{
+				output: "WhatsApp",
+			},
+		},
+		{
+			name: "line",
+			args: args{
+				text: "line:hello",
+			},
+			want: want{
+				output: "Line",
+			},
+		},
+		{
+			name: "gmb",
+			args: args{
+				text: "gmb:hello",
+			},
+			want: want{
+				output: "Google",
+			},
+		},
+		{
+			name: "fb",
+			args: args{
+				text: "fb:hello",
+			},
+			want: want{
+				output: "Facebook",
+			},
+		},
+		{
+			name: "abc",
+			args: args{
+				text: "abc:hello",
+			},
+			want: want{
+				output: "Apple Business Chat",
+			},
+		},
 		{
 			name: "Call For Heymarket",
 			args: args{
@@ -285,7 +335,7 @@ func TestGetStringInBetween(t *testing.T) {
 		end   string
 	}
 	type want struct {
-		output  string
+		output  interface{}
 		isEmpty bool
 	}
 
@@ -333,9 +383,9 @@ func TestGetStringInBetween(t *testing.T) {
 		{
 			name: "End Not Found",
 			args: args{
-				str:   "Heymarket is a SMS Service",
-				start: "shopify",
-				end:   "Service",
+				str:   "Heymarket",
+				start: "H",
+				end:   "n",
 			},
 			want: want{
 				output: "",
@@ -457,7 +507,7 @@ func TestTrim(t *testing.T) {
 
 func TestCleanPhone(t *testing.T) {
 	type args struct {
-		phNo string
+		phNo interface{}
 	}
 	type want struct {
 		phone string
@@ -468,6 +518,24 @@ func TestCleanPhone(t *testing.T) {
 		args args
 		want want
 	}{
+		{
+			name: "Blank",
+			args: args{
+				phNo: "",
+			},
+			want: want{
+				phone: "",
+			},
+		},
+		{
+			name: "For Nil",
+			args: args{
+				phNo: nil,
+			},
+			want: want{
+				phone: "",
+			},
+		},
 		{
 			name: "With brackets",
 			args: args{
@@ -546,6 +614,15 @@ func TestIsBlank(t *testing.T) {
 				isBlank: false,
 			},
 		},
+		{
+			name: "For Nil",
+			args: args{
+				param: nil,
+			},
+			want: want{
+				isBlank: true,
+			},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -569,6 +646,24 @@ func TestPhoneValid(t *testing.T) {
 		args args
 		want want
 	}{
+		{
+			name: "For Nil Input",
+			args: args{
+				v: nil,
+			},
+			want: want{
+				output: false,
+			},
+		},
+		{
+			name: "For A Blank String",
+			args: args{
+				v: "",
+			},
+			want: want{
+				output: false,
+			},
+		},
 		{
 			name: "less then 10 digit",
 			args: args{
@@ -599,7 +694,7 @@ func TestPhoneValid(t *testing.T) {
 
 func TestE164Phone(t *testing.T) {
 	type args struct {
-		v string
+		v interface{}
 	}
 	type want struct {
 		output string
@@ -610,6 +705,42 @@ func TestE164Phone(t *testing.T) {
 		args args
 		want want
 	}{
+		{
+			name: "For Blank String",
+			args: args{
+				v: "",
+			},
+			want: want{
+				output: "",
+			},
+		},
+		{
+			name: "For Less Then 11 Digit",
+			args: args{
+				v: "321654987",
+			},
+			want: want{
+				output: "321654987",
+			},
+		},
+		{
+			name: "For More Then 11 Digit",
+			args: args{
+				v: "321654987321",
+			},
+			want: want{
+				output: "321654987321",
+			},
+		},
+		{
+			name: "For Nil Input",
+			args: args{
+				v: nil,
+			},
+			want: want{
+				output: "",
+			},
+		},
 		{
 			name: "Without Country Code",
 			args: args{
@@ -640,7 +771,7 @@ func TestE164Phone(t *testing.T) {
 
 func TestFloat642Int(t *testing.T) {
 	type args struct {
-		Value float64
+		Value interface{}
 	}
 	type want struct {
 		output  int
@@ -665,10 +796,40 @@ func TestFloat642Int(t *testing.T) {
 		{
 			name: "2nd Float64 to Int",
 			args: args{
-				Value: 90,
+				Value: 90.1,
 			},
 			want: want{
 				output:  90,
+				varType: "int",
+			},
+		},
+		{
+			name: "Negative Number",
+			args: args{
+				Value: -1540.90,
+			},
+			want: want{
+				output:  -1540,
+				varType: "int",
+			},
+		},
+		{
+			name: "Pass Blank",
+			args: args{
+				Value: "",
+			},
+			want: want{
+				output:  0,
+				varType: "int",
+			},
+		},
+		{
+			name: "Pass 0",
+			args: args{
+				Value: 0,
+			},
+			want: want{
+				output:  0,
 				varType: "int",
 			},
 		},
@@ -724,6 +885,39 @@ func TestMarshal(t *testing.T) {
 	}
 }
 
+func TestUnmarshal(t *testing.T) {
+
+	type tempStruct struct {
+		Name string
+		Fees int
+	}
+
+	var v tempStruct
+
+	type args struct {
+		jsn []byte
+	}
+
+	testCases := []struct {
+		name string
+		args args
+	}{
+		{
+			name: "Struct to String",
+			args: args{
+				jsn: []byte("{\"Name\":\"Raghav\",\"Fees\":5000}"),
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			output := Unmarshal(tc.args.jsn, &v)
+			assert.Equal(t, &v, output)
+		})
+	}
+}
+
 func TestToString(t *testing.T) {
 	type args struct {
 		value interface{}
@@ -738,6 +932,26 @@ func TestToString(t *testing.T) {
 		args args
 		want want
 	}{
+		{
+			name: "Nil",
+			args: args{
+				value: nil,
+			},
+			want: want{
+				output:  "",
+				varType: "string",
+			},
+		},
+		{
+			name: "Blank String",
+			args: args{
+				value: "",
+			},
+			want: want{
+				output:  "",
+				varType: "string",
+			},
+		},
 		{
 			name: "Int to string",
 			args: args{
@@ -781,6 +995,217 @@ func TestToString(t *testing.T) {
 			output := ToString(tc.args.value)
 			assert.Equal(t, tc.want.output, output)
 			assert.Equal(t, tc.want.varType, fmt.Sprintf("%T", output))
+		})
+	}
+}
+
+func TestInt64(t *testing.T) {
+
+	type args struct {
+		input string
+	}
+
+	type want struct {
+		output int64
+	}
+	tests := []struct {
+		name    string // test case name
+		args    args
+		want    want // output we want from the test case
+		wantErr bool // to handle test case which should return a error or not
+
+	}{
+		{
+			name: "right string with int",
+			args: args{
+				input: "100",
+			},
+			want: want{
+				output: 100,
+			},
+			wantErr: false,
+		},
+		{
+			name: "blank string",
+			args: args{
+				input: "",
+			},
+			want: want{
+				output: 0,
+			},
+			wantErr: false,
+		},
+		{
+			name: "string with long int",
+			args: args{
+				input: "1234567890121316465",
+			},
+			want: want{
+				output: 1234567890121316465,
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := Int64(tt.args.input)
+			assert.Equal(t, tt.want.output, got)
+			assert.Equal(t, "int64", fmt.Sprintf("%T", got))
+		})
+	}
+}
+
+func TestJSON2Map(t *testing.T) {
+
+	m := make(map[string]interface{})
+	jsn := struct {
+		Name string
+		KD   int
+	}{
+		Name: "Deepak",
+		KD:   12,
+	}
+	jsnByte, _ := json.Marshal(jsn)
+	jsnRaw := json.RawMessage(jsnByte)
+
+	type args struct {
+		rawMessage interface{}
+	}
+	type want struct {
+		output map[string]interface{}
+	}
+
+	m["KD"] = 12
+	m["Name"] = "Deepak"
+
+	testCases := []struct {
+		name string
+		args args
+		want want
+	}{
+		{
+			name: "For Nil",
+			args: args{
+				rawMessage: nil,
+			},
+			want: want{
+				output: nil,
+			},
+		},
+		{
+			name: "Pass RawJson",
+			args: args{
+				rawMessage: jsnRaw,
+			},
+			want: want{
+				output: m,
+			},
+		},
+		{
+			name: "Wrong Input",
+			args: args{
+				rawMessage: jsnRaw,
+			},
+			want: want{
+				output: m,
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			output := JSON2Map(tc.args.rawMessage)
+			// assert.Equal(t, tc.want.output, output)
+			// assert.EqualValues(t, tc.want.output, output)
+			reflect.DeepEqual(tc.want.output, output)
+		})
+	}
+}
+
+func TestUUID(t *testing.T) {
+
+	testCases := []struct {
+		name string
+	}{
+		{
+			name: "Should Return Random Value That Is Not Equal To Nil",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.NotNil(t, UUID())
+		})
+	}
+}
+
+func TestReadAll(t *testing.T) {
+
+	jsonBodyForRequist := string(`{"Name" : "Heymarket","Fees" : 123,}`)
+
+	closer := NopCloser([]byte(jsonBodyForRequist))
+	type args struct {
+		req io.ReadCloser
+	}
+	type want struct {
+		output []byte
+	}
+
+	testCases := []struct {
+		name string
+		args args
+		want want
+	}{
+		{
+			name: "Call For Heymarket",
+			args: args{
+				req: closer,
+			},
+			want: want{
+				output: []byte(`{"Name" : "Heymarket","Fees" : 123,}`),
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			output := ReadAll(tc.args.req)
+			assert.Equal(t, tc.want.output, output)
+		})
+	}
+}
+
+func TestNopCloser(t *testing.T) {
+	type args struct {
+		body []byte
+	}
+	type want struct {
+		output io.ReadCloser
+	}
+	body := []byte(`{"Name" : "Heymarket","Rating" : 5,}`)
+	outputBody := ioutil.NopCloser(bytes.NewBuffer(body))
+
+	testCases := []struct {
+		name string
+		args args
+		want want
+	}{
+		{
+			name: "JSON string in input",
+			args: args{
+				body: []byte(`{"Name" : "Heymarket","Rating" : 5,}`),
+			},
+			want: want{
+				output: outputBody,
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			output := NopCloser(tc.args.body)
+			assert.Equal(t, tc.want.output, output)
 		})
 	}
 }

@@ -2,8 +2,6 @@ module utility
 
 go 1.17
 
-replace utility => ../util
-
 require (
 	github.com/satori/go.uuid v1.2.0
 	github.com/sirupsen/logrus v1.8.1
