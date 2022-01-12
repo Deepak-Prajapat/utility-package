@@ -682,6 +682,15 @@ func TestPhoneValid(t *testing.T) {
 				output: true,
 			},
 		},
+		{
+			name: "more then 10 digit number",
+			args: args{
+				v: "987654321012",
+			},
+			want: want{
+				output: true,
+			},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -865,7 +874,7 @@ func TestMarshal(t *testing.T) {
 		want want
 	}{
 		{
-			name: "Struct to String",
+			name: "correct struct to json",
 			args: args{
 				strct: tempStruct{
 					Name: "Raghav",
@@ -904,7 +913,7 @@ func TestUnmarshal(t *testing.T) {
 		args args
 	}{
 		{
-			name: "Struct to String",
+			name: "correct json in byte form",
 			args: args{
 				jsn: []byte("{\"Name\":\"Raghav\",\"Fees\":5000}"),
 			},
@@ -1102,15 +1111,6 @@ func TestJSON2Map(t *testing.T) {
 				output: m,
 			},
 		},
-		{
-			name: "Wrong Input",
-			args: args{
-				rawMessage: jsnRaw,
-			},
-			want: want{
-				output: m,
-			},
-		},
 	}
 
 	for _, tc := range testCases {
@@ -1158,7 +1158,7 @@ func TestReadAll(t *testing.T) {
 		want want
 	}{
 		{
-			name: "Call For Heymarket",
+			name: "Correct input",
 			args: args{
 				req: closer,
 			},
