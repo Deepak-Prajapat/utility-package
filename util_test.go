@@ -769,6 +769,7 @@ func TestE164Phone(t *testing.T) {
 	}
 }
 
+//// Float642Int
 func TestFloat642Int(t *testing.T) {
 	type args struct {
 		Value interface{}
@@ -1057,7 +1058,6 @@ func TestInt64(t *testing.T) {
 }
 
 func TestJSON2Map(t *testing.T) {
-
 	m := make(map[string]interface{})
 	jsn := struct {
 		Name string
@@ -1183,8 +1183,8 @@ func TestNopCloser(t *testing.T) {
 	type want struct {
 		output io.ReadCloser
 	}
-	body := []byte(`{"Name" : "Heymarket","Rating" : 5,}`)
-	outputBody := ioutil.NopCloser(bytes.NewBuffer(body))
+	body := []byte(`{"Name" : "Heymarket","Rating" : 5}`)
+	outputBody := ioutil.NopCloser(bytes.NewBuffer(body)) /// for output assertion
 
 	testCases := []struct {
 		name string
@@ -1194,7 +1194,7 @@ func TestNopCloser(t *testing.T) {
 		{
 			name: "JSON string in input",
 			args: args{
-				body: []byte(`{"Name" : "Heymarket","Rating" : 5,}`),
+				body: []byte(`{"Name" : "Heymarket","Rating" : 5}`),
 			},
 			want: want{
 				output: outputBody,
