@@ -857,8 +857,8 @@ func TestFloat642Int(t *testing.T) {
 func TestMarshal(t *testing.T) {
 
 	type tempStruct struct {
-		Name string
-		Fees int
+		Name string `json:",omitempty"`
+		Fees int    `json:",omitempty"`
 	}
 
 	type args struct {
@@ -882,7 +882,27 @@ func TestMarshal(t *testing.T) {
 				},
 			},
 			want: want{
-				output: []byte("{\"Name\":\"Raghav\",\"Fees\":5000}"),
+				output: []byte(`{"Name":"Raghav","Fees":5000}`),
+			},
+		},
+		{
+			name: "struct with omitempty json",
+			args: args{
+				strct: tempStruct{
+					Name: "Tushar",
+				},
+			},
+			want: want{
+				output: []byte(`{"Name":"Tushar"}`),
+			},
+		},
+		{
+			name: "empty struct",
+			args: args{
+				strct: tempStruct{},
+			},
+			want: want{
+				output: []byte(`{}`),
 			},
 		},
 	}
@@ -902,28 +922,38 @@ func TestUnmarshal(t *testing.T) {
 		Fees int
 	}
 
-	var v tempStruct
-
 	type args struct {
 		jsn []byte
+	}
+
+	type want struct {
+		output interface{}
 	}
 
 	testCases := []struct {
 		name string
 		args args
+		want want
 	}{
 		{
 			name: "correct json in byte form",
 			args: args{
-				jsn: []byte("{\"Name\":\"Raghav\",\"Fees\":5000}"),
+				jsn: []byte(`{"Name":"Raghav","Fees":5000}`),
+			},
+			want: want{
+				output: &tempStruct{
+					Name: "Raghav",
+					Fees: 5000,
+				},
 			},
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			var v tempStruct
 			output := Unmarshal(tc.args.jsn, &v)
-			assert.Equal(t, &v, output)
+			assert.Equal(t, tc.want.output, output)
 		})
 	}
 }
