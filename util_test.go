@@ -116,7 +116,7 @@ func TestSplit(t *testing.T) {
 	}{
 
 		{
-			name: "hello world",
+			name: "split two words with space",
 			args: args{
 				text: "hello world",
 				char: " ",
@@ -127,7 +127,7 @@ func TestSplit(t *testing.T) {
 			},
 		},
 		{
-			name: "three words",
+			name: "split three words with space",
 			args: args{
 				text: "let it be",
 				char: " ",
@@ -138,7 +138,7 @@ func TestSplit(t *testing.T) {
 			},
 		},
 		{
-			name: "Blank text",
+			name: "Empty string",
 			args: args{
 				text: "",
 				char: " ",
@@ -149,7 +149,7 @@ func TestSplit(t *testing.T) {
 			},
 		},
 		{
-			name: "Blank char",
+			name: "empty char",
 			args: args{
 				text: "hey mate",
 				char: "",
